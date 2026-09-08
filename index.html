@@ -152,7 +152,6 @@
     </div>
 
     <script>
-        // আপনার নতুন /exec SCRIPT_URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC_gxSEBJCZJuQYssPu-5yKDhLoxU3NlT2IUgx3FiHnILhgfISt8jQYiGJMvpwRngUIQ/exec";
 
         window.onload = function() {
@@ -161,17 +160,27 @@
 
         function loadRankData() {
             fetch(SCRIPT_URL)
-                .then(response => response.json())
-                .then(sheetData => {
-                    if (!sheetData || sheetData.length === 0) {
-                        document.getElementById('cards-container').innerText = "কোনো ডাটা পাওয়া যায়নি!";
-                        return;
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        const sheetData = JSON.parse(text);
+                        if (sheetData.error) {
+                            document.getElementById('cards-container').innerText = "Script Error: " + sheetData.error;
+                            return;
+                        }
+                        if (!sheetData || sheetData.length === 0) {
+                            document.getElementById('cards-container').innerText = "RANK_JAGAT শিটে কোনো ডাটা পাওয়া যায়নি! Google Sheet থেকে Master Control > Update Rank Data দিন।";
+                            return;
+                        }
+                        processData(sheetData);
+                    } catch(e) {
+                        console.error("Response was not JSON:", text);
+                        document.getElementById('cards-container').innerText = "ডাটা ফরম্যাট ভুল এসেছে! Apps Script-এ New Version তৈরি করে Deploy করা হয়েছে কিনা নিশ্চিত করুন।";
                     }
-                    processData(sheetData);
                 })
                 .catch(err => {
                     console.error("Error loading data:", err);
-                    document.getElementById('cards-container').innerText = "ডাটা লোড করতে সমস্যা হয়েছে! Google Apps Script এর Code.gs কোডটি আপডেট এবং Deploy ঠিকমতো হয়েছে কিনা চেক করুন।";
+                    document.getElementById('cards-container').innerText = "নেটওয়ার্ক কানেকশন বা URL সমস্যা হয়েছে।";
                 });
         }
 
