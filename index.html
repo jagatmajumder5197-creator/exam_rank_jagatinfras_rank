@@ -1,376 +1,288 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rank Card & Merit List</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { 
-      font-family: 'Times New Roman', Times, serif; 
-      background: #eaedf1; 
-      padding: 10px 0 120px 0; 
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Wise Rank Cards</title>
+    <style>
+        @page { 
+            size: A4 portrait; 
+            margin: 15mm; 
+        }
+        body {
+            font-family: 'Times New Roman', serif;
+            background: #fff;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+        .print-bar {
+            text-align: center;
+            padding: 10px;
+            background: #f0f0f0;
+            border-bottom: 1px solid #bbb;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        .print-bar button {
+            padding: 8px 22px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #333;
+            background: #fff;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+        }
+        .print-bar button:hover { 
+            background: #ddd; 
+        }
+        @media print {
+            .print-bar { display: none !important; }
+        }
+        .a4-sheet {
+            width: 170mm;
+            min-height: 257mm;
+            margin: 15px auto;
+            padding: 10mm;
+            box-sizing: border-box;
+            page-break-after: always;
+        }
 
-    /* Mobile Container for A4 Sheet */
-    .paper-wrapper {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      padding: 5px;
-    }
+        /* Header Styles */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .header-logo, .header-qr {
+            width: 60px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-logo img, .header-qr img {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+        }
+        .header-text {
+            flex: 1;
+            text-align: center;
+        }
+        .header-text h1 { margin: 0; font-size: 21px; text-transform: uppercase; }
+        .header-text h3 { margin: 4px 0; font-size: 15px; }
+        .header-text p  { margin: 2px 0; font-size: 13px; }
 
-    /* A4 Sheet Container */
-    .paper {
-      width: 100%;
-      max-width: 210mm;
-      min-height: 297mm;
-      background: #ffffff;
-      margin: 0 auto;
-      padding: 30px 25px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      position: relative;
-    }
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0 5px 0;
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
 
-    /* Print settings */
-    @media print {
-      body { background: #fff; padding: 0; }
-      .paper-wrapper { padding: 0; }
-      .paper { box-shadow: none; margin: 0; width: 100%; max-width: 100%; min-height: auto; padding: 15px; }
-      .no-print { display: none !important; }
-    }
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        th {
+            border: 1px solid #000;
+            background: #f2f2f2;
+            padding: 7px;
+            font-size: 13px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: center;
+            font-size: 13px;
+        }
 
-    /* Header Section */
-    .header { position: relative; text-align: center; margin-bottom: 8px; min-height: 60px; }
-    
-    .logo-img { 
-      position: absolute; 
-      top: 0; 
-      left: 0; 
-      width: 50px; 
-      height: 50px; 
-      object-fit: contain; 
-    }
-
-    .header h1 { font-size: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .header h2 { font-size: 13px; font-weight: bold; margin-top: 2px; }
-    
-    /* Jagat Infrastructure & Algorithm small text styling */
-    .header p { 
-      font-size: 8.5px; 
-      text-transform: uppercase; 
-      letter-spacing: 0.8px; 
-      font-family: Arial, sans-serif; 
-      margin-top: 3px; 
-      font-weight: 600;
-      color: #333;
-    }
-    
-    /* QR Code Styling */
-    .qr-code { 
-      position: absolute; 
-      top: 0; 
-      right: 0; 
-      width: 50px; 
-      height: 50px; 
-    }
-    .qr-code img { width: 100%; height: 100%; }
-
-    .divider { border-bottom: 2px solid #000; margin-bottom: 12px; }
-
-    /* Sub-header Bar */
-    .sub-bar {
-      border: 1.5px solid #000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 8px;
-      font-family: Arial, sans-serif;
-      font-size: 11px;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-    .badge-center { 
-      background: #000; 
-      color: #fff; 
-      padding: 2px 10px; 
-      font-size: 10px; 
-      border-radius: 2px; 
-      letter-spacing: 0.5px;
-    }
-
-    /* Table Styling */
-    .styled-table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      font-family: Arial, sans-serif; 
-      font-size: 11px; 
-      margin-bottom: 30px; 
-    }
-    .styled-table th, .styled-table td { border: 1px solid #777; padding: 6px 4px; text-align: center; }
-    .styled-table th { background: #f8fafc; font-weight: bold; font-size: 10px; text-transform: uppercase; }
-
-    /* Rank Badges */
-    .rank-badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 10px; }
-    .rank-1st { background: #fef08a; color: #854d0e; }
-    .rank-2nd { background: #e2e8f0; color: #334155; }
-    .rank-3rd { background: #fed7aa; color: #9a3412; }
-    .rank-other { background: #f1f5f9; color: #475569; }
-
-    /* Signatures */
-    .signature-container { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 5px; }
-    .sig-box { text-align: center; width: 30%; font-family: Arial, sans-serif; }
-    .sig-img { height: 25px; font-family: 'Brush Script MT', cursive, sans-serif; font-size: 16px; color: #1e293b; }
-    .sig-line { border-top: 1.5px solid #000; padding-top: 4px; font-size: 9px; font-weight: bold; letter-spacing: 0.5px; }
-
-    /* Watermark Footer */
-    .footer-watermark { text-align: center; font-size: 8px; color: #888; font-family: Arial, sans-serif; margin-top: 20px; font-style: italic; }
-
-    /* BOTTOM CONTROL BAR - Android Responsive */
-    .bottom-control-bar {
-      position: fixed;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      font-family: Arial, sans-serif;
-      z-index: 9999;
-      width: 92%;
-      max-width: 500px;
-    }
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-    }
-    .bottom-control-bar select {
-      background: #334155;
-      color: #fff;
-      border: 1px solid #475569;
-      padding: 4px 8px;
-      border-radius: 12px;
-      outline: none;
-      font-size: 11px;
-    }
-    .btn {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 15px;
-      font-size: 11px;
-      font-weight: bold;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-    }
-    .btn-switch { background: #3b82f6; color: #fff; }
-    .btn-pdf { background: #ea580c; color: #fff; }
-    .btn-print { background: #22c55e; color: #fff; }
-
-    @media (max-width: 480px) {
-      .header h1 { font-size: 16px; }
-      .header h2 { font-size: 11px; }
-      .logo-img, .qr-code { width: 40px; height: 40px; }
-    }
-  </style>
+        /* Footer & Signature Styles */
+        .footer {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .sig-box {
+            width: 30%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .sig-img {
+            height: 45px;
+            max-width: 120px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+        .sig-title {
+            font-size: 12px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            margin-top: 0;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="paper-wrapper">
-    <!-- PAPER / SHEET -->
-    <div class="paper" id="printableCard">
-      
-      <!-- HEADER -->
-      <div class="header">
-        <img src="Logo_jagat.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
-        
-        <h1>Shripur Kindergarten School</h1>
-        <h2>2<sup>nd</sup> Summative Evaluation - 2026</h2>
-        <p>Jagat Infrastructure & Algorithm</p>
-
-        <!-- DYNAMIC QR CODE -->
-        <div class="qr-code">
-          <img id="qrImg" src="" alt="QR">
-        </div>
-      </div>
-      
-      <div class="divider"></div>
-
-      <!-- SUB BAR -->
-      <div class="sub-bar">
-        <span>CLASS / SECTION: <span id="classText">NUR_A</span></span>
-        <span class="badge-center" id="modeBadge">RANK CARD</span>
-        <span>SESSION: 2026</span>
-      </div>
-
-      <!-- TABLE (NO SL COLUMN) -->
-      <table class="styled-table">
-        <thead>
-          <tr>
-            <th style="width: 14%;">Rank</th>
-            <th style="text-align: left; padding-left: 8px;">Student's Name</th>
-            <th style="width: 12%;">Roll</th>
-            <th style="width: 12%;">FM</th>
-            <th style="width: 12%;">Obt</th>
-            <th style="width: 16%;">Percentage</th>
-          </tr>
-        </thead>
-        <tbody id="studentTableBody">
-          <!-- Dynamically rendered via JS -->
-        </tbody>
-      </table>
-
-      <!-- SIGNATURES -->
-      <div class="signature-container">
-        <div class="sig-box">
-          <div class="sig-img">Animesh Das</div>
-          <div class="sig-line">CLASS TEACHER</div>
-        </div>
-        <div class="sig-box">
-          <div class="sig-img">Jagat Majumder</div>
-          <div class="sig-line">JAGAT INFRASTRUCTURE</div>
-        </div>
-        <div class="sig-box">
-          <div class="sig-img">S. K. Roy</div>
-          <div class="sig-line">PRINCIPAL</div>
-        </div>
-      </div>
-
-      <!-- FOOTER WATERMARK -->
-      <div class="footer-watermark">
-        Computer Generated Rank Card • Shripur Kindergarten School
-      </div>
-
-    </div>
-  </div>
-
-  <!-- FLOATING BOTTOM CONTROL BAR -->
-  <div class="bottom-control-bar no-print">
-    <div class="filter-group">
-      <label for="classSelect">Class:</label>
-      <select id="classSelect" onchange="changeClass(this.value)">
-        <option value="NUR_A">NUR_A</option>
-        <option value="NUR_B">NUR_B</option>
-        <option value="X (Ten)">X (Ten)</option>
-      </select>
+    <div class="print-bar">
+        <button onclick="window.print()">🖨️ Print / Download PDF</button>
     </div>
 
-    <button class="btn btn-switch" onclick="toggleMode()">🔄 <span id="switchBtnText">Merit List</span></button>
-    <button class="btn btn-pdf" onclick="exportPDF()">📄 PDF</button>
-    <button onclick="window.print()" class="btn btn-print">🖨️ Print</button>
-  </div>
+    <div id="cards-container" style="text-align: center; padding: 30px; font-weight: bold; font-family: Arial, sans-serif;">
+        ডাটা লোড হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...
+    </div>
 
-  <script>
-    // Database
-    const schoolData = {
-      "NUR_A": [
-        { name: "AARAV SHARMA", roll: "01", fm: 500, obt: 485 },
-        { name: "PRIYA CHOWDHURY", roll: "02", fm: 500, obt: 462 },
-        { name: "RITAM BANERJEE", roll: "05", fm: 500, obt: 440 },
-        { name: "SNEHA DASH", roll: "04", fm: 500, obt: 415 }
-      ],
-      "NUR_B": [
-        { name: "ROHAN VERMA", roll: "01", fm: 500, obt: 478 },
-        { name: "ISHA GUPTA", roll: "03", fm: 500, obt: 450 },
-        { name: "KABIR SENGUPTA", roll: "02", fm: 500, obt: 432 }
-      ],
-      "X (Ten)": [
-        { name: "ANKIT MUKHERJEE", roll: "12", fm: 700, obt: 672 },
-        { name: "DEBARATI MONDAL", roll: "04", fm: 700, obt: 658 },
-        { name: "SOUMYA PAUL", roll: "01", fm: 700, obt: 640 },
-        { name: "TITHI BANIK", roll: "08", fm: 700, obt: 610 }
-      ]
-    };
+    <script>
+        // Google Apps Script Web App URL টি এখানে বসান
+        const SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
 
-    let currentMode = 'RANK CARD';
-    let currentClass = 'NUR_A';
+        window.onload = function() {
+            loadRankData();
+        };
 
-    window.onload = () => {
-      renderData();
-    };
+        function loadRankData() {
+            fetch(SCRIPT_URL)
+                .then(response => response.json())
+                .then(sheetData => {
+                    if (!sheetData || sheetData.length === 0) {
+                        document.getElementById('cards-container').innerText = "কোনো ডাটা পাওয়া যায়নি!";
+                        return;
+                    }
+                    processData(sheetData);
+                })
+                .catch(err => {
+                    console.error("Error loading data:", err);
+                    document.getElementById('cards-container').innerText = "ডাটা লোড করতে সমস্যা হয়েছে! SCRIPT_URL সঠিক আছে কিনা চেক করুন।";
+                });
+        }
 
-    function renderData() {
-      document.getElementById('classText').innerText = currentClass;
-      
-      const qrData = `School: Shripur KG | Class: ${currentClass} | Mode: ${currentMode} | Session: 2026`;
-      document.getElementById('qrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${encodeURIComponent(qrData)}`;
+        function getOrdinalRank(n) {
+            var s = ["th", "st", "nd", "rd"];
+            var v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
 
-      const students = schoolData[currentClass] || [];
-      students.sort((a, b) => b.obt - a.obt);
+        // ক্লাস অনুযায়ী Teacher Signature ছবির নাম বের করার ফাংশন
+        function getTeacherSigFileName(cls) {
+            if (!cls) return 'Images/ia.png';
+            var clean = cls.toString().toLowerCase().replace('class', '').replace(/[^a-z0-9]/g, '');
+            return 'Images/' + clean + '.png';
+        }
 
-      const tbody = document.getElementById('studentTableBody');
-      tbody.innerHTML = '';
+        function processData(sheetData) {
+            var container = document.getElementById('cards-container');
+            container.innerHTML = "";
 
-      students.forEach((student, index) => {
-        const rank = index + 1;
-        const pct = ((student.obt / student.fm) * 100).toFixed(2) + '%';
-        
-        let badgeClass = 'rank-other';
-        let rankText = `${rank}th`;
-        
-        if (rank === 1) { badgeClass = 'rank-1st'; rankText = '1st'; }
-        else if (rank === 2) { badgeClass = 'rank-2nd'; rankText = '2nd'; }
-        else if (rank === 3) { badgeClass = 'rank-3rd'; rankText = '3rd'; }
+            for (var startCol = 0; startCol < sheetData[0].length; startCol += 11) {
+                if (!sheetData[0][startCol]) break;
+                var cls = (sheetData[1] && sheetData[1][startCol + 1])
+                          ? sheetData[1][startCol + 1] : "";
+                var students = [];
+                for (var r = 1; r < sheetData.length; r++) {
+                    if (!sheetData[r][startCol + 4]) continue;
+                    students.push({
+                        merit : sheetData[r][startCol + 9],
+                        rnk   : getOrdinalRank(sheetData[r][startCol + 2]),
+                        name  : sheetData[r][startCol + 4],
+                        roll  : sheetData[r][startCol + 5],
+                        fm    : sheetData[r][startCol + 6],
+                        gtt   : sheetData[r][startCol + 7],
+                        pc    : parseFloat(sheetData[r][startCol + 8] || 0).toFixed(2)
+                    });
+                }
+                if (students.length > 0) {
+                    container.innerHTML += buildCard(cls, students);
+                }
+            }
+        }
 
-        const row = `
-          <tr>
-            <td><span class="rank-badge ${badgeClass}">${rankText}</span></td>
-            <td style="text-align: left; padding-left: 8px; font-weight: bold;">${student.name}</td>
-            <td>${student.roll}</td>
-            <td>${student.fm}</td>
-            <td>${student.obt}</td>
-            <td>${pct}</td>
-          </tr>
-        `;
-        tbody.innerHTML += row;
-      });
-    }
+        function buildCard(cls, students) {
+            var rows = "";
+            for (var i = 0; i < students.length; i++) {
+                var st = students[i];
+                rows += "<tr>"
+                      + "<td>" + st.merit + "</td>"
+                      + "<td>" + st.rnk + "</td>"
+                      + "<td style='text-align:left;padding-left:6px'>" + st.name + "</td>"
+                      + "<td>" + st.roll + "</td>"
+                      + "<td>" + st.fm + "</td>"
+                      + "<td>" + st.gtt + "</td>"
+                      + "<td>" + st.pc + "%</td>"
+                      + "</tr>";
+            }
 
-    function changeClass(val) {
-      currentClass = val;
-      renderData();
-    }
+            var teacherSigPath = getTeacherSigFileName(cls);
 
-    function toggleMode() {
-      const modeBadge = document.getElementById('modeBadge');
-      const switchBtnText = document.getElementById('switchBtnText');
+            return ""
+                + "<div class='a4-sheet'>"
 
-      if (currentMode === 'RANK CARD') {
-        currentMode = 'MERIT LIST';
-        modeBadge.innerText = 'MERIT LIST';
-        switchBtnText.innerText = 'Rank Card';
-      } else {
-        currentMode = 'RANK CARD';
-        modeBadge.innerText = 'RANK CARD';
-        switchBtnText.innerText = 'Merit List';
-      }
-      renderData();
-    }
+                /* Header: Logo, School Info, QR Code */
+                + "  <div class='header'>"
+                + "    <div class='header-logo'>"
+                + "      <img src='Images/Logo_Jagat.png' alt='Logo' onerror=\"this.style.display='none'\">"
+                + "    </div>"
+                + "    <div class='header-text'>"
+                + "      <h1>SHRIPUR KINDERGARTEN SCHOOL</h1>"
+                + "      <h3>2<sup>nd</sup> Summative Evaluation - 2026</h3>"
+                + "      <p>Jagat Infrastructure &amp; Algorithm</p>"
+                + "    </div>"
+                + "    <div class='header-qr'>"
+                + "      <img src='Images/qr.png' alt='QR' onerror=\"this.style.display='none'\">"
+                + "    </div>"
+                + "  </div>"
 
-    function exportPDF() {
-      const element = document.getElementById('printableCard');
-      const opt = {
-        margin:       0,
-        filename:     `${currentClass}_${currentMode.replace(' ', '_')}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+                /* Meta Info */
+                + "  <div class='meta-info'>"
+                + "    <span>Class/Sec: " + cls + "</span>"
+                + "    <span>RANK CARD</span>"
+                + "  </div>"
 
-      html2pdf().set(opt).from(element).save();
-    }
-  </script>
+                /* Table */
+                + "  <table>"
+                + "    <thead><tr>"
+                + "      <th>SL</th><th>Rank</th><th>Student's Name</th>"
+                + "      <th>Roll</th><th>FM</th><th>Obt</th><th>Percentage</th>"
+                + "    </tr></thead>"
+                + "    <tbody>" + rows + "</tbody>"
+                + "  </table>"
+
+                /* Footer: Signatures */
+                + "  <div class='footer'>"
+                + "    <div class='sig-box'>"
+                + "      <img src='" + teacherSigPath + "' class='sig-img' alt='Class Teacher Sign' onerror=\"this.style.display='none'\">"
+                + "      <div class='sig-title'>Class Teacher</div>"
+                + "    </div>"
+                + "    <div class='sig-box'>"
+                + "      <img src='Images/jagatinfras.png' class='sig-img' alt='Jagat Infra Sign' onerror=\"this.style.display='none'\">"
+                + "      <div class='sig-title'>Jagat Infrastructure &amp; Algorithm</div>"
+                + "    </div>"
+                + "    <div class='sig-box'>"
+                + "      <img src='Images/principal.png' class='sig-img' alt='Principal Sign' onerror=\"this.style.display='none'\">"
+                + "      <div class='sig-title'>Principal</div>"
+                + "    </div>"
+                + "  </div>"
+
+                + "</div>";
+        }
+    </script>
 </body>
 </html>
