@@ -152,8 +152,8 @@
     </div>
 
     <script>
-        // আপডেট করা /exec SCRIPT_URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo8c9bTAXQQRSUf5Sxa_mXo2IlzkrEorFWNueVAAMv8cOJHR3ow-lejvUo14wTTlSwOA/exec";
+        // আপনার নতুন /exec SCRIPT_URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC_gxSEBJCZJuQYssPu-5yKDhLoxU3NlT2IUgx3FiHnILhgfISt8jQYiGJMvpwRngUIQ/exec";
 
         window.onload = function() {
             loadRankData();
@@ -171,7 +171,7 @@
                 })
                 .catch(err => {
                     console.error("Error loading data:", err);
-                    document.getElementById('cards-container').innerText = "ডাটা লোড করতে সমস্যা হয়েছে! Google Apps Script-এর Deploy settings-এ 'Who has access' অপশনটি 'Anyone' করা আছে কিনা নিশ্চিত করুন।";
+                    document.getElementById('cards-container').innerText = "ডাটা লোড করতে সমস্যা হয়েছে! Google Apps Script এর Code.gs কোডটি আপডেট এবং Deploy ঠিকমতো হয়েছে কিনা চেক করুন।";
                 });
         }
 
