@@ -152,8 +152,8 @@
     </div>
 
     <script>
-        // Google Apps Script Web App URL টি এখানে বসান
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwOoMOtOJsh9hNqyY_VIirEKTIskItCyk_vk8qDkc1r/dev";
+        // আপডেট করা /exec SCRIPT_URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo8c9bTAXQQRSUf5Sxa_mXo2IlzkrEorFWNueVAAMv8cOJHR3ow-lejvUo14wTTlSwOA/exec";
 
         window.onload = function() {
             loadRankData();
@@ -171,7 +171,7 @@
                 })
                 .catch(err => {
                     console.error("Error loading data:", err);
-                    document.getElementById('cards-container').innerText = "ডাটা লোড করতে সমস্যা হয়েছে! SCRIPT_URL সঠিক আছে কিনা চেক করুন।";
+                    document.getElementById('cards-container').innerText = "ডাটা লোড করতে সমস্যা হয়েছে! Google Apps Script-এর Deploy settings-এ 'Who has access' অপশনটি 'Anyone' করা আছে কিনা নিশ্চিত করুন।";
                 });
         }
 
@@ -181,7 +181,6 @@
             return n + (s[(v - 20) % 10] || s[v] || s[0]);
         }
 
-        // ক্লাস অনুযায়ী Teacher Signature ছবির নাম বের করার ফাংশন
         function getTeacherSigFileName(cls) {
             if (!cls) return 'Images/ia.png';
             var clean = cls.toString().toLowerCase().replace('class', '').replace(/[^a-z0-9]/g, '');
@@ -235,7 +234,6 @@
             return ""
                 + "<div class='a4-sheet'>"
 
-                /* Header: Logo, School Info, QR Code */
                 + "  <div class='header'>"
                 + "    <div class='header-logo'>"
                 + "      <img src='Images/Logo_Jagat.png' alt='Logo' onerror=\"this.style.display='none'\">"
@@ -250,13 +248,11 @@
                 + "    </div>"
                 + "  </div>"
 
-                /* Meta Info */
                 + "  <div class='meta-info'>"
                 + "    <span>Class/Sec: " + cls + "</span>"
                 + "    <span>RANK CARD</span>"
                 + "  </div>"
 
-                /* Table */
                 + "  <table>"
                 + "    <thead><tr>"
                 + "      <th>SL</th><th>Rank</th><th>Student's Name</th>"
@@ -265,7 +261,6 @@
                 + "    <tbody>" + rows + "</tbody>"
                 + "  </table>"
 
-                /* Footer: Signatures */
                 + "  <div class='footer'>"
                 + "    <div class='sig-box'>"
                 + "      <img src='" + teacherSigPath + "' class='sig-img' alt='Class Teacher Sign' onerror=\"this.style.display='none'\">"
