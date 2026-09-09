@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Wise Rank Cards</title>
+    <style>
+        @page { 
+            size: A4 portrait; 
+            margin: 15mm; 
+        }
+        body {
+            font-family: 'Times New Roman', serif;
+            background: #fff;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+        .print-bar {
+            text-align: center;
+            padding: 12px;
+            background: #f0f0f0;
+            border-bottom: 1px solid #bbb;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .print-bar label {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .print-bar select {
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            font-family: Arial, sans-serif;
+            cursor: pointer;
+            background: #fff;
+        }
+        .print-bar button {
+            padding: 7px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #333;
+            background: #fff;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+        }
+        .print-bar button:hover { 
+            background: #ddd; 
+        }
+        @media print {
+            .print-bar { display: none !important; }
+        }
+        .a4-sheet {
+            width: 170mm;
+            min-height: 257mm;
+            margin: 15px auto;
+            padding: 10mm;
+            box-sizing: border-box;
+            page-break-after: always;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .header-logo, .header-qr {
+            width: 60px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-logo img, .header-qr img {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+        }
+        .header-text {
+            flex: 1;
+            text-align: center;
+        }
+        .header-text h1 { 
+            margin: 0; 
+            font-size: 26px; 
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase; 
+        }
+        .header-text h3 { 
+            margin: 3px 0; 
+            font-size: 15px; 
+        }
+        .header-text p  { 
+            margin: 2px 0; 
+            font-size: 12px; 
+            font-weight: bold;
+        }
+
+        /* Meta Info Row */
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0 5px 0;
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+        .meta-left {
+            width: 33%;
+            text-align: left;
+        }
+        .meta-center {
+            width: 34%;
+            text-align: center;
+        }
+        .meta-right {
+            width: 33%;
+            text-align: right;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        th {
+            border: 1px solid #000;
+            background: #f2f2f2;
+            padding: 6px;
+            font-size: 12px;
+            text-align: center;
+        }
+        td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* Footer & Signature Styles */
+        .footer {
+            margin-top: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .sig-box {
+            width: 30%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .sig-img {
+            height: 35px;
+            max-width: 110px;
+            object-fit: contain;
+            margin-bottom: 3px;
+        }
+        .sig-title {
+            font-size: 10px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+            padding-top: 4px;
+            margin-top: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-bar">
+        <label for="class-select">Select Class:</label>
+        <select id="class-select" onchange="filterAndRender()">
+            <option value="ALL">All Classes / Sections</option>
+        </select>
+        <button onclick="window.print()">🖨️ Print / Download PDF</button>
+    </div>
+
+    <div id="cards-container" style="text-align: center; padding: 30px; font-weight: bold; font-family: Arial, sans-serif;">
+        Loading data, please wait...
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzC_gxSEBJCZJuQYssPu-5yKDhLoxU3NlT2IUgx3FiHnILhgfISt8jQYiGJMvpwRngUIQ/exec";
+        let cachedSheetData = null;
+
+        window.onload = function() {
+            loadRankData();
+        };
+
+        function loadRankData() {
+            fetch(SCRIPT_URL)
+                .then(response => response.text())
+                .then(text => {
+                    try {
+                        const sheetData = JSON.parse(text);
+                        if (sheetData.error) {
+                            document.getElementById('cards-container').innerText = "Script Error: " + sheetData.error;
+                            return;
+                        }
+                        if (!sheetData || sheetData.length === 0) {
+                            document.getElementById('cards-container').innerText = "No data found in RANK_JAGAT sheet!";
+                            return;
+                        }
+                        cachedSheetData = sheetData;
+                        populateClassDropdown(sheetData);
+                        filterAndRender();
+                    } catch(e) {
+                        console.error("Response was not JSON:", text);
+                        document.getElementById('cards-container').innerText = "Data format error! Please deploy a New Version in Apps Script.";
+                    }
+                })
+                .catch(err => {
+                    console.error("Error loading data:", err);
+                    document.getElementById('cards-container').innerText = "Network connection or URL error.";
+                });
+        }
+
+        function populateClassDropdown(sheetData) {
+            const select = document.getElementById('class-select');
+            select.innerHTML = '<option value="ALL">All Classes / Sections</option>';
+
+            for (let startCol = 0; startCol < sheetData[0].length; startCol += 11) {
+                if (!sheetData[0][startCol]) break;
+                let cls = (sheetData[1] && sheetData[1][startCol + 1]) 
+                          ? sheetData[1][startCol + 1].toString().trim() : "";
+                if (cls) {
+                    let opt = document.createElement('option');
+                    opt.value = cls;
+                    opt.textContent = cls;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        function filterAndRender() {
+            if (!cachedSheetData) return;
+            const selectedClass = document.getElementById('class-select').value;
+            const container = document.getElementById('cards-container');
+            container.innerHTML = "";
+
+            let foundCount = 0;
+
+            for (var startCol = 0; startCol < cachedSheetData[0].length; startCol += 11) {
+                if (!cachedSheetData[0][startCol]) break;
+                var cls = (cachedSheetData[1] && cachedSheetData[1][startCol + 1])
+                          ? cachedSheetData[1][startCol + 1].toString().trim() : "";
+
+                if (selectedClass !== "ALL" && cls !== selectedClass) {
+                    continue;
+                }
+
+                var students = [];
+                for (var r = 1; r < cachedSheetData.length; r++) {
+                    if (!cachedSheetData[r][startCol + 4]) continue;
+                    students.push({
+                        merit : cachedSheetData[r][startCol + 9],
+                        rnk   : getOrdinalRank(cachedSheetData[r][startCol + 2]),
+                        name  : cachedSheetData[r][startCol + 4],
+                        roll  : cachedSheetData[r][startCol + 5],
+                        fm    : cachedSheetData[r][startCol + 6],
+                        gtt   : cachedSheetData[r][startCol + 7],
+                        pc    : parseFloat(cachedSheetData[r][startCol + 8] || 0).toFixed(2)
+                    });
+                }
+
+                if (students.length > 0) {
+                    container.innerHTML += buildCard(cls, students);
+                    foundCount++;
+                }
+            }
+
+            if (foundCount === 0) {
+                container.innerHTML = '<div style="padding:40px;">No records found for the selected class.</div>';
+            }
+        }
+
+        function getOrdinalRank(n) {
+            if (n === null || n === undefined || n === "" || isNaN(parseInt(n))) {
+                return "-";
+            }
+            var num = parseInt(n);
+            var s = ["th", "st", "nd", "rd"];
+            var v = num % 100;
+            var suf = s[(v - 20) % 10] || s[v] || s[0];
+            return num + "<sup>" + suf + "</sup>";
+        }
+
+        function getTeacherSigFileName(cls) {
+            if (!cls) return 'Images/ia.png';
+            
+            var raw = cls.toString().toUpperCase().trim();
+
+            // Explicit Dictionary Mapping for 100% Exact Matching
+            var sigMap = {
+                // Nursery
+                "NURA": "nura.png",
+                "NURB": "nurb.png",
+                "NUR (A)": "nura.png",
+                "NUR (B)": "nurb.png",
+                "NURSERY (A)": "nura.png",
+                "NURSERY (B)": "nurb.png",
+                "NURSERY A": "nura.png",
+                "NURSERY B": "nurb.png",
+
+                // LKG
+                "LKGA": "lkga.png",
+                "LKGB": "lkgb.png",
+                "LKG (A)": "lkga.png",
+                "LKG (B)": "lkgb.png",
+                "LKG A": "lkga.png",
+                "LKG B": "lkgb.png",
+
+                // UKG
+                "UKGA": "ukga.png",
+                "UKGB": "ukgb.png",
+                "UKG (A)": "ukga.png",
+                "UKG (B)": "ukgb.png",
+                "UKG A": "ukga.png",
+                "UKG B": "ukgb.png",
+
+                // Class I
+                "IA": "ia.png",
+                "IB": "ib.png",
+                "I (A)": "ia.png",
+                "I (B)": "ib.png",
+                "CLASS I (A)": "ia.png",
+                "CLASS I (B)": "ib.png",
+                "CLASS I A": "ia.png",
+                "CLASS I B": "ib.png",
+
+                // Class II
+                "IIA": "iia.png",
+                "II (A)": "iia.png",
+                "CLASS II (A)": "iia.png",
+                "CLASS II": "iia.png",
+                "CLASS II A": "iia.png",
+
+                // Class III
+                "IIIA": "iiia.png",
+                "III (A)": "iiia.png",
+                "CLASS III (A)": "iiia.png",
+                "CLASS III": "iiia.png",
+                "CLASS III A": "iiia.png",
+
+                // Class IV
+                "IVA": "iva.png",
+                "IV (A)": "iva.png",
+                "CLASS IV (A)": "iva.png",
+                "CLASS IV": "iva.png",
+                "CLASS IV A": "iva.png",
+
+                // Class V
+                "VA": "va.png",
+                "V (A)": "va.png",
+                "V (FIVE)": "va.png",
+                "CLASS V (A)": "va.png",
+                "CLASS V (FIVE)": "va.png",
+                "CLASS V A": "va.png",
+
+                // Class VI
+                "VIA": "via.png",
+                "VI (A)": "via.png",
+                "VI (SIX)": "via.png",
+                "CLASS VI (A)": "via.png",
+                "CLASS VI (SIX)": "via.png",
+                "CLASS VI A": "via.png",
+
+                // Class VII
+                "VIIA": "viia.png",
+                "VII (A)": "viia.png",
+                "VII (SEVEN)": "viia.png",
+                "CLASS VII (A)": "viia.png",
+                "CLASS VII (SEVEN)": "viia.png",
+                "CLASS VII A": "viia.png",
+
+                // Class VIII
+                "VIIIA": "viiia.png",
+                "VIII (A)": "viiia.png",
+                "VIII (EIGHT)": "viiia.png",
+                "CLASS VIII (A)": "viiia.png",
+                "CLASS VIII (EIGHT)": "viiia.png",
+                "CLASS VIII A": "viiia.png",
+
+                // Class IX
+                "IX": "jagatinfras.png",
+                "IX (NINE)": "jagatinfras.png",
+                "CLASS IX": "jagatinfras.png",
+                "CLASS IX (NINE)": "jagatinfras.png",
+
+                // Class X
+                "X": "jagatinfras.png",
+                "X (TEN)": "jagatinfras.png",
+                "CLASS X": "jagatinfras.png",
+                "CLASS X (TEN)": "jagatinfras.png"
+            };
+
+            if (sigMap[raw]) {
+                return 'Images/' + sigMap[raw];
+            }
+
+            var clean = raw.replace(/[^A-Z0-9]/g, '').toLowerCase();
+            return 'Images/' + clean + '.png';
+        }
+
+        function buildCard(cls, students) {
+            var rows = "";
+            var i = 0;
+
+            while (i < students.length) {
+                var currentRank = students[i].rnk;
+                var span = 1;
+
+                while (i + span < students.length && students[i + span].rnk === currentRank && currentRank !== "-") {
+                    span++;
+                }
+
+                for (var j = 0; j < span; j++) {
+                    var st = students[i + j];
+                    rows += "<tr>"
+                          + "<td>" + st.merit + "</td>";
+
+                    if (j === 0) {
+                        rows += "<td rowspan='" + span + "' style='vertical-align: middle; font-weight: bold;'>" + currentRank + "</td>";
+                    }
+
+                    rows += "<td style='text-align:left;padding-left:6px'>" + st.name + "</td>"
+                          + "<td>" + st.roll + "</td>"
+                          + "<td>" + st.fm + "</td>"
+                          + "<td>" + st.gtt + "</td>"
+                          + "<td>" + st.pc + "%</td>"
+                          + "</tr>";
+                }
+
+                i += span;
+            }
+
+            var teacherSigPath = getTeacherSigFileName(cls);
+
+            return ""
+                + "<div class='a4-sheet'>"
+
+                + "  <div class='header'>"
+                + "    <div class='header-logo'>"
+                + "      <img src='Images/Logo_Jagat.png' alt='Logo' onerror=\"this.style.display='none'\">"
+                + "    </div>"
+                + "    <div class='header-text'>"
+                + "      <h1>SHRIPUR KINDERGARTEN SCHOOL</h1>"
+                + "      <h3>2<sup>Nd</sup> Summative Evaluation - 2026</h3>"
+                + "      <p>Jagat Infrastructure &amp; Algorithm</p>"
+                + "    </div>"
+                + "    <div class='header-qr'>"
+                + "      <img src='Images/qr.png' alt='QR' onerror=\"this.style.display='none'\">"
+                + "    </div>"
+                + "  </div>"
+
+                + "  <div class='meta-info'>"
+                + "    <span class='meta-left'>Class/Sec: " + cls + "</span>"
+                + "    <span class='meta-center'>Rank Card / Merit List</span>"
+                + "    <span class='meta-right'>Session: 2026</span>"
+                + "  </div>"
+
+                + "  <table>"
+                + "    <thead><tr>"
+                + "      <th>SL</th><th>Rank</th><th>Name</th>"
+                + "      <th>Roll</th><th>Full Marks</th><th>Obt. Marks</th><th>%</th>"
+                + "    </tr></thead>"
+                + "    <tbody>" + rows + "</tbody>"
+                + "  </table>"
+
+                + "  <div class='footer'>"
+                + "    <div class='sig-box'>"
+                + "      <img src='" + teacherSigPath + "' class='sig-img' alt='Class Teacher Sign' onerror=\"this.style.display='none'\">"
+                + "      <div class='sig-title'>Class Teacher</div>"
+                + "    </div>"
+                + "    <div class='sig-box'>"
+                + "      <img src='Images/jagatinfras.png' class='sig-img' alt='Jagat Infra Sign' onerror=\"this.style.display='none'\">"
+                + "      <div class='sig-title'>Jagat Infrastructure &amp; Algorithm</div>"
+                + "    </div>"
+                + "    <div class='sig-box'>"
+                + "      <img src='Images/principal.png' class='sig-img' alt='Principal Sign' onerror=\"this.style.display='none'\">"
+                + "      <div class='sig-title'>Principal</div>"
+                + "    </div>"
+                + "  </div>"
+
+                + "</div>";
+        }
+    </script>
+</body>
+</html>
