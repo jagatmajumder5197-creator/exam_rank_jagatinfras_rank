@@ -207,6 +207,16 @@
             loadRankData();
         };
 
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function loadRankData() {
             fetch(SCRIPT_URL)
                 .then(response => response.text())
@@ -310,9 +320,7 @@
             
             var raw = cls.toString().toUpperCase().trim();
 
-            // Explicit Dictionary Mapping for 100% Exact Matching
             var sigMap = {
-     
                 "NUR_A": "nura.png",
                 "NUR_B": "nurb.png",
                 "LKG_A": "lkga.png",
@@ -322,14 +330,14 @@
                 "I (A)": "ia.png",
                 "I (B)": "ib.png",
                 "II (Two)": "iia.png",
-               "III (Three)": "iiia.png",
+                "III (Three)": "iiia.png",
                 "IV (Four)": "iva.png",
                 "V (Five)": "va.png",
                 "VI (Six)": "via.png",
                 "VII (Seven)": "viia.png",
                 "VIII (Eight)": "viiia.png",
                 "IX (Nine)": "jagatinfras.png",
-                "X (Ten)": "jagatinfras.png",
+                "X (Ten)": "jagatinfras.png"
             };
 
             if (sigMap[raw]) {
@@ -355,17 +363,17 @@
                 for (var j = 0; j < span; j++) {
                     var st = students[i + j];
                     rows += "<tr>"
-                          + "<td>" + st.merit + "</td>";
+                          + "<td>" + escapeHtml(st.merit) + "</td>";
 
                     if (j === 0) {
                         rows += "<td rowspan='" + span + "' style='vertical-align: middle; font-weight: bold;'>" + currentRank + "</td>";
                     }
 
-                    rows += "<td style='text-align:left;padding-left:6px'>" + st.name + "</td>"
-                          + "<td>" + st.roll + "</td>"
-                          + "<td>" + st.fm + "</td>"
-                          + "<td>" + st.gtt + "</td>"
-                          + "<td>" + st.pc + "%</td>"
+                    rows += "<td style='text-align:left;padding-left:6px'>" + escapeHtml(st.name) + "</td>"
+                          + "<td>" + escapeHtml(st.roll) + "</td>"
+                          + "<td>" + escapeHtml(st.fm) + "</td>"
+                          + "<td>" + escapeHtml(st.gtt) + "</td>"
+                          + "<td>" + escapeHtml(st.pc) + "%</td>"
                           + "</tr>";
                 }
 
@@ -392,7 +400,7 @@
                 + "  </div>"
 
                 + "  <div class='meta-info'>"
-                + "    <span class='meta-left'>Class/Sec: " + cls + "</span>"
+                + "    <span class='meta-left'>Class/Sec: " + escapeHtml(cls) + "</span>"
                 + "    <span class='meta-center'>Rank Card / Merit List</span>"
                 + "    <span class='meta-right'>Session: 2026</span>"
                 + "  </div>"
