@@ -318,7 +318,7 @@
         function getTeacherSigFileName(cls) {
             if (!cls) return 'Images/ia.png';
             
-            var raw = cls.toString().toUpperCase().trim();
+            var raw = cls.toString().trim();
 
             var sigMap = {
                 "NUR_A": "nura.png",
@@ -340,12 +340,8 @@
                 "X (Ten)": "jagatinfras.png"
             };
 
-            if (sigMap[raw]) {
-                return 'Images/' + sigMap[raw];
-            }
-
-            var clean = raw.replace(/[^A-Z0-9]/g, '').toLowerCase();
-            return 'Images/' + clean + '.png';
+            var fileName = sigMap[raw] || "ia.png";
+            return 'Images/' + fileName;
         }
 
         function buildCard(cls, students) {
